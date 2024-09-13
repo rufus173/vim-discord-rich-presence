@@ -9,6 +9,9 @@ class discord_ipc:
 		#connect to discords ipc
 		self.sock = socket.socket(socket.AF_UNIX)
 		self.sock.connect(discord_socket_path)
+	
+	def stop(self):
+		self.sock.close()
 
 	def send(self,data,opcode = 1):
 		data = json.dumps(data, separators=(",",":")).encode()
@@ -28,6 +31,9 @@ class discord_ipc:
 		return data_json	
 
 if __name__ == "__main__":
+	import sys
+	import time
+	pid = int(sys.argv[1])
 	discord = discord_ipc()
 	#prepare a handshake
 	client_id = "439476230543245312" #vim bot
@@ -43,7 +49,7 @@ if __name__ == "__main__":
 	#prepare activity
 	activity = {
 		"details":"me when",
-		"state":"mmmmm",
+		"state":str(pid),
 		#"assets":{
 		#	"small_text":"me when small text"
 		#},
@@ -51,9 +57,9 @@ if __name__ == "__main__":
 
 	#prep new rich presence data
 	data = {
-		"cmd":"SET_ACTIVITY",
+		"cmd":"UPDATE_ACTIVITY",#SET_ACTIVITY
 		"args":{
-			"pid": os.getpid(),#so discord knows when the "game" closes
+			"pid": pid,#so discord knows when the "game" closes
 			"activity":activity,
 		},
 		"nonce": str(uuid.uuid4()),
@@ -62,6 +68,4 @@ if __name__ == "__main__":
 	#send presence
 	discord.send(data)
 	print(discord.recv())
-	while True:
-		#stay alive so discord keeps the presence
-		pass
+	discord.stop()
