@@ -8,7 +8,16 @@ import uuid
 import sys
 import time
 class discord_ipc:
-	def __init__(self,pid,discord_socket_path="/tmp/discord-ipc-0"):
+	def __init__(self,pid,discord_socket_path=None):
+		#find discords ipc socket
+		discord_socket_locations = ["/tmp/discord-ipc-0"]
+		if discord_socket_path == None:
+			for i in discord_socket_locations:
+				if os.path.exists(i):
+					discord_socket_path = i
+		if discord_socket_path == None:
+			return
+
 		#connect to discords ipc
 		try:
 			self.sock = socket.socket(socket.AF_UNIX)
@@ -17,7 +26,7 @@ class discord_ipc:
 			self.pid = pid
 			self.start_time = int(time.time())
 		except:
-			return -1
+			return
 	def stop(self):
 		try:
 			self.send({},2)
