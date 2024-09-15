@@ -9,31 +9,42 @@ import time
 class discord_ipc:
 	def __init__(self,pid,discord_socket_path="/tmp/discord-ipc-0"):
 		#connect to discords ipc
-		self.sock = socket.socket(socket.AF_UNIX)
-		self.sock.connect(discord_socket_path)
-		self.sock.settimeout(2)
-		self.pid = pid
-		self.start_time = int(time.time())
-
+		try:
+			self.sock = socket.socket(socket.AF_UNIX)
+			self.sock.connect(discord_socket_path)
+			self.sock.settimeout(1)
+			self.pid = pid
+			self.start_time = int(time.time())
+		except:
+			return -1
 	def stop(self):
-		self.sock.close()
+		try:
+			self.sock.close()
+		except:
+			pass
 
 	def send(self,data,opcode = 1):
-		data = json.dumps(data, separators=(",",":")).encode()
-		header = struct.pack("<II",opcode,len(data))
-
-		#print(f"h:{header}")
-		self.sock.send(header)
-		#print(f"b:{data}")
-		self.sock.send(data)
+		try:
+			data = json.dumps(data, separators=(",",":")).encode()
+			header = struct.pack("<II",opcode,len(data))
+	
+			#print(f"h:{header}")
+			self.sock.send(header)
+			#print(f"b:{data}")
+			self.sock.send(data)
+		except:
+			return -1
 
 	def recv(self):
-		#get response
-		raw_header = self.sock.recv(8)
-		op, header = struct.unpack("<II",raw_header)
-		data = self.sock.recv(header).decode()
-		data_json = json.loads(data)
-		return data_json
+		try:
+			#get response
+			raw_header = self.sock.recv(8)
+			op, header = struct.unpack("<II",raw_header)
+			data = self.sock.recv(header).decode()
+			data_json = json.loads(data)
+			return data_json
+		except:
+			return -1
 
 	def handshake(self):
 		#prepare a handshake
@@ -42,15 +53,19 @@ class discord_ipc:
 		handshake = {'v': 1, 'client_id': client_id}
 
 		#handshake
-		self.send(handshake,0)
+		status = self.send(handshake,0)
+		if status == -1:
+			return -1
 		#get hanshake response
-		self.recv()
+		status = self.recv()
+		if status == -1:
+			return -1
 
-	def set_presence(self):
+	def set_presence(self,details="Editing a file",state="Type unknown"):
 		#prepare activity
 		activity = {
-			"details":"me when",
-			"state":str(self.pid),
+			"details":details,
+			"state":state,
 			"timestamps":{
 				"start":self.start_time
 			},
@@ -67,12 +82,19 @@ class discord_ipc:
 		}
 
 		#send presence
-		self.send(data)
-		self.recv()
+		status = self.send(data)
+		status = self.recv()
+		if status == -1:
+			return -1
 
 if __name__ == "__main__":
 	discord = discord_ipc(os.getpid())
-	discord.handshake()
+	status = discord.handshake()
+	if status == -1:
+		print("could not handshake")
 	while True:
 		time.sleep(1)
-		discord.set_presence()
+		status = discord.set_presence()
+		if status == -1:
+			break
+		print(status)
