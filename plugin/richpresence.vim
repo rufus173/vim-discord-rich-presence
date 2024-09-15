@@ -28,7 +28,9 @@ endfunction
 
 #refresh the prersence
 function g:Set_presence()
-	python3 discord.set_presence()
+	let filename = expand("%:t")
+	let filetype = &ft
+	python3 discord.set_presence(f"Editing: {vim.eval('filename')}",f"Type: {vim.eval('filetype')}")
 endfunction
 
 #kill the socket
