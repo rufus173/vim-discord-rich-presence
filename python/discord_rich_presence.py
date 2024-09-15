@@ -4,6 +4,8 @@ import json
 import struct
 import os
 import uuid
+import sys
+import time
 class discord_ipc:
 	def __init__(self,pid,discord_socket_path="/tmp/discord-ipc-0"):
 		#connect to discords ipc
@@ -32,9 +34,7 @@ class discord_ipc:
 		data_json = json.loads(data)
 		return data_json
 
-	def set_presence():
-		import sys
-		import time
+	def handshake(self):
 		#prepare a handshake
 		client_id = "439476230543245312" #vim bot
 		#client_id = "887774122141167638" my bot
@@ -45,11 +45,11 @@ class discord_ipc:
 		#get hanshake response
 		print(self.recv())
 
-
+	def set_presence(self):
 		#prepare activity
 		activity = {
 			"details":"me when",
-			"state":str(pid),
+			"state":str(self.pid),
 		}
 
 		#prep new rich presence data
@@ -67,4 +67,8 @@ class discord_ipc:
 		print(self.recv())
 
 if __name__ == "__main__":
-	set_presence()
+	discord = discord_ipc(os.getpid())
+	discord.handshake()
+	while True:
+		time.sleep(1)
+		discord.set_presence()
