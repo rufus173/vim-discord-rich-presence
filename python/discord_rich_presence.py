@@ -41,13 +41,14 @@ def set_presence(pid=9999):
 	#send presence
 	discord.send(data)
 	print(discord.recv())
-	discord.stop()
+	#discord.stop()
 class discord_ipc:
 	def __init__(self,discord_socket_path="/tmp/discord-ipc-0"):	
 		#connect to discords ipc
 		self.sock = socket.socket(socket.AF_UNIX)
 		self.sock.connect(discord_socket_path)
-	
+		self.sock.settimeout(2)
+
 	def stop(self):
 		self.sock.close()
 
@@ -66,7 +67,7 @@ class discord_ipc:
 		op, header = struct.unpack("<II",raw_header)
 		data = self.sock.recv(header).decode()
 		data_json = json.loads(data)
-		return data_json	
+		return data_json
 
 if __name__ == "__main__":
 	set_presence()
