@@ -4,50 +4,13 @@ import json
 import struct
 import os
 import uuid
-def set_presence(pid=9999):
-	import sys
-	import time
-	discord = discord_ipc()
-	#prepare a handshake
-	client_id = "439476230543245312" #vim bot
-	#client_id = "887774122141167638" my bot
-	handshake = {'v': 1, 'client_id': client_id}
-
-	#handshake
-	discord.send(handshake,0)
-	#get hanshake response
-	print(discord.recv())
-
-
-	#prepare activity
-	activity = {
-		"details":"me when",
-		"state":str(pid),
-		#"assets":{
-		#	"small_text":"me when small text"
-		#},
-	}
-
-	#prep new rich presence data
-	data = {
-		"cmd":"SET_ACTIVITY",#SET_ACTIVITY
-		"args":{
-			"pid": pid,#so discord knows when the "game" closes
-			"activity":activity,
-		},
-		"nonce": str(uuid.uuid4()),
-	}
-
-	#send presence
-	discord.send(data)
-	print(discord.recv())
-	#discord.stop()
 class discord_ipc:
-	def __init__(self,discord_socket_path="/tmp/discord-ipc-0"):	
+	def __init__(self,pid,discord_socket_path="/tmp/discord-ipc-0"):
 		#connect to discords ipc
 		self.sock = socket.socket(socket.AF_UNIX)
 		self.sock.connect(discord_socket_path)
 		self.sock.settimeout(2)
+		self.pid = pid
 
 	def stop(self):
 		self.sock.close()
@@ -68,6 +31,40 @@ class discord_ipc:
 		data = self.sock.recv(header).decode()
 		data_json = json.loads(data)
 		return data_json
+
+	def set_presence():
+		import sys
+		import time
+		#prepare a handshake
+		client_id = "439476230543245312" #vim bot
+		#client_id = "887774122141167638" my bot
+		handshake = {'v': 1, 'client_id': client_id}
+
+		#handshake
+		self.send(handshake,0)
+		#get hanshake response
+		print(self.recv())
+
+
+		#prepare activity
+		activity = {
+			"details":"me when",
+			"state":str(pid),
+		}
+
+		#prep new rich presence data
+		data = {
+			"cmd":"SET_ACTIVITY",#SET_ACTIVITY
+			"args":{
+				"pid": self.pid,#so discord knows when the "game" closes
+				"activity":activity,
+			},
+			"nonce": str(uuid.uuid4()),
+		}
+
+		#send presence
+		self.send(data)
+		print(self.recv())
 
 if __name__ == "__main__":
 	set_presence()
