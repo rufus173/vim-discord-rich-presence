@@ -13,6 +13,7 @@ class discord_ipc:
 		self.sock.connect(discord_socket_path)
 		self.sock.settimeout(2)
 		self.pid = pid
+		self.start_time = int(time.time())
 
 	def stop(self):
 		self.sock.close()
@@ -21,9 +22,9 @@ class discord_ipc:
 		data = json.dumps(data, separators=(",",":")).encode()
 		header = struct.pack("<II",opcode,len(data))
 
-		print(f"h:{header}")
+		#print(f"h:{header}")
 		self.sock.send(header)
-		print(f"b:{data}")
+		#print(f"b:{data}")
 		self.sock.send(data)
 
 	def recv(self):
@@ -43,13 +44,16 @@ class discord_ipc:
 		#handshake
 		self.send(handshake,0)
 		#get hanshake response
-		print(self.recv())
+		self.recv()
 
 	def set_presence(self):
 		#prepare activity
 		activity = {
 			"details":"me when",
 			"state":str(self.pid),
+			"timestamps":{
+				"start":self.start_time
+			},
 		}
 
 		#prep new rich presence data
@@ -64,7 +68,7 @@ class discord_ipc:
 
 		#send presence
 		self.send(data)
-		print(self.recv())
+		self.recv()
 
 if __name__ == "__main__":
 	discord = discord_ipc(os.getpid())
