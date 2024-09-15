@@ -19,6 +19,7 @@ class discord_ipc:
 			return -1
 	def stop(self):
 		try:
+			self.send({},2)
 			self.sock.close()
 		except:
 			pass
