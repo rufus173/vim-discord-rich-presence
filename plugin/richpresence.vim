@@ -35,6 +35,12 @@ endfunction
 function g:Set_presence()
 	let filename = expand("%:t")
 	let filetype = &ft
+	if len(filename) == 0
+		let filename = "New file"
+	endif
+	if len(filetype) == 0
+		let filetype = "Text"
+	endif
 	python3 discord.start_presence(f"Editing: {vim.eval('filename')}",f"Type: {vim.eval('filetype')}")
 endfunction
 
