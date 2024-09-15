@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import threading
 import socket
 import json
 import struct
@@ -88,14 +89,44 @@ class discord_ipc:
 		if status == -1:
 			return -1
 
+class threaded_discord_rich_presence:
+	def __init__(self,pid):
+		self.discord = discord_ipc(pid)
+	def wait_for_thread(self):
+		while True:
+			time.sleep(0.1)
+			if self.done == True:
+				return
+	def start_presence_main_thread(self):
+		self.discord.handshake()
+		self.discord.set_presence(self.details,self.state)
+		self.done = True
+	def start_presence(self,details=None,state=None):
+		self.details = details
+		self.state = state
+		self.ipc_thread = threading.Thread(target=self.start_presence_main_thread) 
+		self.done = False
+		self.ipc_thread.start()
+	def stop(self):
+		self.wait_for_thread()
+		self.discord.stop()
+
 if __name__ == "__main__":
-	discord = discord_ipc(os.getpid())
-	status = discord.handshake()
-	if status == -1:
-		print("could not handshake")
+	discord = threaded_discord_rich_presence(os.getpid())
+	discord.start_presence()
+	print("thread started")
+	discord.wait_for_thread()
+	print("thread done")
 	while True:
-		time.sleep(1)
-		status = discord.set_presence()
-		if status == -1:
-			break
-		print(status)
+		pass
+
+	#discord = discord_ipc(os.getpid())
+	#status = discord.handshake()
+	#if status == -1:
+	#	print("could not handshake")
+	#while True:
+	#	time.sleep(1)
+	#	status = discord.set_presence()
+	#	if status == -1:
+	#		break
+	#	print(status)

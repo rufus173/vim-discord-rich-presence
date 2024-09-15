@@ -21,8 +21,13 @@ path.insert(0,python_root) #allows module importing
 pid = int(vim.eval("pid"))
 
 import discord_rich_presence
-discord = discord_rich_presence.discord_ipc(pid)
-discord.handshake() #so it is ready to get our data
+
+#use threaded version instead of this one
+#discord = discord_rich_presence.discord_ipc(pid)
+discord = discord_rich_presence.threaded_discord_rich_presence(pid)
+
+#also obselete when threading
+#discord.handshake() #so it is ready to get our data
 EOF
 endfunction
 
@@ -30,7 +35,7 @@ endfunction
 function g:Set_presence()
 	let filename = expand("%:t")
 	let filetype = &ft
-	python3 discord.set_presence(f"Editing: {vim.eval('filename')}",f"Type: {vim.eval('filetype')}")
+	python3 discord.start_presence(f"Editing: {vim.eval('filename')}",f"Type: {vim.eval('filetype')}")
 endfunction
 
 #kill the socket
