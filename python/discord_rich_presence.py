@@ -9,6 +9,8 @@ import sys
 import time
 class discord_ipc:
 	def __init__(self,pid,discord_socket_path=None):
+		self.start_time = int(time.time())
+		self.pid = pid
 		#find discords ipc socket
 		discord_socket_locations = ["/tmp/discord-ipc-0"]
 		if discord_socket_path == None:
@@ -23,9 +25,8 @@ class discord_ipc:
 			self.sock = socket.socket(socket.AF_UNIX)
 			self.sock.connect(discord_socket_path)
 			self.sock.settimeout(1)
-			self.pid = pid
-			self.start_time = int(time.time())
-		except:
+		except Exception as problem:
+			print(problem)
 			return
 	def stop(self):
 		try:
